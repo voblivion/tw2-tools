@@ -1,5 +1,5 @@
-var units = require('../bin/data/units');
-var simulator = require('../bin/simulator');
+var units = require('../src/data/units');
+var simulator = require('../src/simulator');
 var _ = require('lodash');
 
 var data = {
