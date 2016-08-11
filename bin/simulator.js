@@ -4,7 +4,22 @@ var _ = require('lodash');
 
 module.exports = {
     data: {
-
+        atk: {
+            units: {
+                // ...
+            },
+            moral: 1,
+            luck: 0,
+            chapel: 0
+        },
+        def: {
+            units: {
+                // ...
+            },
+            wall: 0,
+            chapel: 0
+        },
+        night_bonus: false
     },
 
     simulate: function (input) {
