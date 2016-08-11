@@ -1,0 +1,11 @@
+{
+  "name": "tw2-tools",
+  "version": "1.0.0",
+  "description": "Tribal Wars 2 tools",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "vob",
+  "license": "ISC"
+}
