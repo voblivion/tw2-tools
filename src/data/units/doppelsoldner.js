@@ -1,9 +1,9 @@
 /**
- * Mercenary unit
+ * Doppelsoldner unit
  *
  */
 module.exports = {
-    name: 'mercenary',
+    name: 'doppelsoldner',
     building: 'preceptory',
     required_level: 1,
     wood: 1200,

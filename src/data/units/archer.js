@@ -1,9 +1,9 @@
 /**
- * Arc unit
+ * Archer unit
  *
  */
 module.exports = {
-    name: 'arc',
+    name: 'archer',
     building: 'barracks',
     required_level: 9,
     wood: 80,

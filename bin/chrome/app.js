@@ -16719,30 +16719,99 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(6);
+	var _ = __webpack_require__(1);
+	var calculator = __webpack_require__(7);
+	var units = __webpack_require__(8);
 
 	var visible = false;
 
-	var observer = new MutationObserver(function() {
-	    var overviewIncoming = $('[ng-controller="OverviewIncomingController"]');
 
-	    if(overviewIncoming.length > 0) {
+	setInterval(function() {
+	    var overview_incoming = $('[ng-controller="OverviewIncomingController"]');
+
+	    if(overview_incoming.length > 0) {
 	        if(!visible) {
 	            visible = true;
-	            console.log(overviewIncoming[0]);
-	            // Do something...
 	        }
+	        var incoming_armies = $('.win-main table tr', overview_incoming);
+	        var progress_cols = $('.column-command_progress', incoming_armies);
+
+	        // Faire de la place pour un icone
+	        progress_cols.css({
+	            'line-height': '0',
+	            'text-align': 'inherit'
+	        });
+	        var progress_bars = $('.progress-wrapper', progress_cols);
+	        progress_bars.css({
+	            display: 'inline-block',
+	            width: 'calc(100% - 38px)'
+	        });
+
+	        progress_cols.each(function() {
+	            if($('.tw2-tools', $(this)).length === 0) {
+	                // Calculer le temps total
+	                var progress_wrapper = $('.progress-wrapper', $(this));
+	                var progress_bar = $('.progress-bar', $(this));
+	                var progress_percent = progress_bar.width() / progress_wrapper.width();
+	                var remaining_time_text = $('.progress-text', $(this)).text();
+	                var i = remaining_time_text.split(':');
+	                var remaining_time = i[0] * 3600 + i[1] * 60 + i[2];
+	                var total_time = remaining_time / (1 - progress_percent);
+	                console.log(remaining_time, total_time);
+
+	                // Calculer la distance
+	                var origin = $('.column-origin_village_name .coordinates').text();
+	                var origin_coords = origin.match(/(?:(\d+)\s\|\s(\d+))/).slice(1);
+	                origin = {x: origin_coords[0], y: origin_coords[1]};
+	                var target = $('.column-target_village_name .coordinates').text();
+	                var target_coords = target.match(/(?:(\d+)\s\|\s(\d+))/).slice(1);
+	                target = {x: target_coords[0], y: target_coords[1]};
+
+	                // Calcul de l'unité la plus lente
+	                var dist = calculator.distance(origin, target);
+	                var slowest_unit = null;
+	                var min_diff = Infinity;
+	                _.forEach(units, function(unit) {
+	                    var diff = Math.abs(unit.speed * dist * 60 * 100 - total_time);
+	                    if(diff < min_diff) {
+	                        slowest_unit = unit;
+	                        min_diff = diff;
+	                    }
+	                });
+
+	                // Affichage de l'icone de l'unité la plus lente
+	                var name = slowest_unit.name;
+	                var icon = $('<span class="tw2-tools icon-34x34-unit-'
+	                        + name + '"></span>');
+	                icon.css({
+	                    margin: '1px'
+	                });
+	                $(this).append(icon);
+
+	                // Sélection du type de commande entrante
+	                var type = $('.column-command_type .type').attr('tooltip-content');
+
+	                // Si l'unité la plus lente est un noble, surligner en rouge la ligne
+	                if(_.includes(['snob', 'trebuchet'], name) && type === 'Attaque') {
+	                    $('td', $(this).parent()).css({
+	                        background: 'rgba(255, 0, 0, 0.5)',
+	                        color: 'white'
+	                    });
+	                }
+	                else if(_.includes(['ram', 'catapult'], name) && type === 'Attaque') {
+	                    $('td', $(this).parent()).css({
+	                        background: 'rgba(200, 100, 0, 0.5)',
+	                        color: 'white'
+	                    });
+	                }
+	                console.log(type, name);
+	            }
+	        });
 	    }
 	    else {
 	        visible = false;
-	        console.log('hidden');
 	    }
-	});
-
-	observer.observe(document, {
-	    subtree: true,
-	    attributes: true,
-	    childList: true
-	});
+	}, 2000);
 
 
 /***/ },
@@ -26823,6 +26892,485 @@
 
 	return jQuery;
 	} );
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	module.exports = {
+	    distance: function(origin, target) {
+	        var x1 = (origin.y % 2 === 0) ? origin.x - 1 : origin.x;
+	        var x2 = (target.y % 2 === 0) ? target.x - 1 : target.x;
+	        return Math.sqrt(Math.pow(x1 - x2, 2) + 0.75 * Math.pow(origin.y - target.y, 2));
+	    }
+	};
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = {
+	    archer: __webpack_require__(9),
+	    axe: __webpack_require__(10),
+	    catapult: __webpack_require__(11),
+	    heavy_cavalry: __webpack_require__(12),
+	    knight: __webpack_require__(13),
+	    light_cavalry: __webpack_require__(14),
+	    doppelsoldner: __webpack_require__(15),
+	    mounted_archer: __webpack_require__(16),
+	    ram: __webpack_require__(17),
+	    snob: __webpack_require__(18),
+	    spear: __webpack_require__(19),
+	    sword: __webpack_require__(20),
+	    trebuchet: __webpack_require__(21)
+	};
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	/**
+	 * Archer unit
+	 *
+	 */
+	module.exports = {
+	    name: 'archer',
+	    building: 'barracks',
+	    required_level: 9,
+	    wood: 80,
+	    clay: 30,
+	    iron: 60,
+	    food: 1,
+	    build_time: 1500,
+	    attack: 25,
+	    type: 'inf',
+	    defense: {
+	        inf: 10,
+	        cav: 30,
+	        arc: 60
+	    },
+	    speed: 14,
+	    load: 10,
+	//    type: 3,
+	    points: {
+	        atk: 2,
+	        def: 5
+	    }
+	};
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	/**
+	 * Axe unit
+	 *
+	 */
+	module.exports = {
+	    name: 'axe',
+	    building: 'barracks',
+	    required_level: 5,
+	    wood: 60,
+	    clay: 30,
+	    iron: 40,
+	    food: 1,
+	    build_time: 1320,
+	    attack: 45,
+	    type: 'inf',
+	    defense: {
+	        inf: 10,
+	        cav: 5,
+	        arc: 10
+	    },
+	    speed: 14,
+	    load: 10,
+	//    type: 1,
+	    points: {
+	        atk: 4,
+	        def: 1
+	    }
+	};
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports) {
+
+	/**
+	 * Catapult unit
+	 *
+	 */
+	module.exports = {
+	    name: 'catapult',
+	    building: 'barracks',
+	    required_level: 17,
+	    wood: 320,
+	    clay: 400,
+	    iron: 100,
+	    food: 8,
+	    build_time: 7200,
+	    attack: 100,
+	    type: 'inf',
+	    defense: {
+	        inf: 100,
+	        cav: 50,
+	        arc: 100
+	    },
+	    speed: 24,
+	    load: 0,
+	//    type: 1,
+	    points: {
+	        atk: 10,
+	        def: 12
+	    }
+	};
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	/**
+	 * Heavy cavalry unit
+	 *
+	 */
+	module.exports = {
+	    name: 'heavy_cavalry',
+	    building: 'barracks',
+	    required_level: 21,
+	    wood: 200,
+	    clay: 150,
+	    iron: 600,
+	    food: 6,
+	    build_time: 3200,
+	    attack: 150,
+	    type: 'cav',
+	    defense: {
+	        inf: 200,
+	        cav: 80,
+	        arc: 180
+	    },
+	    speed: 9,
+	    load: 50,
+	//    type: 2,
+	    points: {
+	        atk: 15,
+	        def: 23
+	    }
+	};
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports) {
+
+	/**
+	 * Knight unit
+	 *
+	 */
+	module.exports = {
+	    name: 'knight',
+	    building: 'statue',
+	    required_level: 1,
+	    wood: 0,
+	    clay: 0,
+	    iron: 0,
+	    food: 1,
+	    build_time: 21600,
+	    attack: 150,
+	    type: 'cav',
+	    defense: {
+	        inf: 250,
+	        cav: 400,
+	        arc: 150
+	    },
+	    speed: 8,
+	    load: 100,
+	//    type: 2,
+	    points: {
+	        atk: 20,
+	        def: 40
+	    }
+	};
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports) {
+
+	/**
+	 * Light cavalry unit
+	 *
+	 */
+	module.exports = {
+	    name: 'light_cavalry',
+	    building: 'barracks',
+	    required_level: 11,
+	    wood: 125,
+	    clay: 100,
+	    iron: 250,
+	    food: 4,
+	    build_time: 1800,
+	    attack: 130,
+	    type: 'cav',
+	    defense: {
+	        inf: 30,
+	        cav: 40,
+	        arc: 30
+	    },
+	    speed: 8,
+	    load: 80,
+	//    type: 2,
+	    points: {
+	        atk: 13,
+	        def: 5
+	    }
+	};
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports) {
+
+	/**
+	 * Doppelsoldner unit
+	 *
+	 */
+	module.exports = {
+	    name: 'doppelsoldner',
+	    building: 'preceptory',
+	    required_level: 1,
+	    wood: 1200,
+	    clay: 1200,
+	    iron: 2400,
+	    food: 6,
+	    build_time: 1800,
+	    attack: 300,
+	    type: 'inf',
+	    defense: {
+	        inf: 100,
+	        cav: 100,
+	        arc: 50
+	    },
+	    speed: 14,
+	    load: 10,
+	//    type: 1,
+	    points: {
+	        atk: 25,
+	        def: 10
+	    },
+	    special: true
+	};
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports) {
+
+	/**
+	 * Mounted archer unit
+	 *
+	 */
+	module.exports = {
+	    name: 'mounted_archer',
+	    building: 'barracks',
+	    required_level: 13,
+	    wood: 250,
+	    clay: 100,
+	    iron: 150,
+	    food: 5,
+	    build_time: 2200,
+	    attack: 150,
+	    type: 'arc',
+	    defense: {
+	        inf: 40,
+	        cav: 30,
+	        arc: 50
+	    },
+	    speed: 8,
+	    load: 50,
+	//    type: 3,
+	    points: {
+	        atk: 12,
+	        def: 6
+	    }
+	};
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports) {
+
+	/**
+	 * Ram unit
+	 *
+	 */
+	module.exports = {
+	    name: 'ram',
+	    building: 'barracks',
+	    required_level: 15,
+	    wood: 300,
+	    clay: 200,
+	    iron: 200,
+	    food: 5,
+	    build_time: 4800,
+	    attack: 2,
+	    type: 'inf',
+	    defense: {
+	        inf: 20,
+	        cav: 50,
+	        arc: 20
+	    },
+	    speed: 24,
+	    load: 0,
+	//    type: 1,
+	    points: {
+	        atk: 8,
+	        def: 4
+	    }
+	};
+
+
+/***/ },
+/* 18 */
+/***/ function(module, exports) {
+
+	/**
+	 * Snob unit
+	 *
+	 */
+	module.exports = {
+	    name: 'snob',
+	    building: 'academy',
+	    required_level: 1,
+	    wood: 40000,
+	    clay: 50000,
+	    iron: 50000,
+	    food: 100,
+	    build_time: 10800,
+	    attack: 30,
+	    type: 'inf',
+	    defense: {
+	        inf: 100,
+	        cav: 50,
+	        arc: 100
+	    },
+	    speed: 35,
+	    load: 0,
+	//    type: 1,
+	    points: {
+	        atk: 200,
+	        def: 200
+	    },
+	    special: true
+	};
+
+
+/***/ },
+/* 19 */
+/***/ function(module, exports) {
+
+	/**
+	 * Spear unit
+	 *
+	 */
+	module.exports = {
+	    name: 'spear',
+	    building: 'barracks',
+	    required_level: 1,
+	    wood: 50,
+	    clay: 30,
+	    iron: 20,
+	    food: 1,
+	    build_time: 1200,
+	    attack: 25,
+	    type: 'inf',
+	    defense: {
+	        inf: 55,
+	        cav: 45,
+	        arc: 10
+	    },
+	    speed: 14,
+	    load: 25,
+	//    type: 1,
+	    points: {
+	        atk: 1,
+	        def: 4
+	    }
+	};
+
+
+/***/ },
+/* 20 */
+/***/ function(module, exports) {
+
+	/**
+	 * Sword unit
+	 *
+	 */
+	module.exports = {
+	    name: 'sword',
+	    building: 'barracks',
+	    required_level: 3,
+	    wood: 30,
+	    clay: 30,
+	    iron: 70,
+	    food: 1,
+	    build_time: 1200,
+	    attack: 25,
+	    type: 'inf',
+	    defense: {
+	        inf: 55,
+	        cav: 5,
+	        arc: 30
+	    },
+	    speed: 18,
+	    load: 15,
+	//    type: 1,
+	    points: {
+	        atk: 2,
+	        def: 5
+	    }
+	};
+
+
+/***/ },
+/* 21 */
+/***/ function(module, exports) {
+
+	/**
+	 * Trebuchet unit
+	 *
+	 */
+	module.exports = {
+	    name: 'trebuchet',
+	    building: 'preceptory',
+	    required_level: 1,
+	    wood: 4000,
+	    clay: 2000,
+	    iron: 2000,
+	    food: 10,
+	    build_time: 1800,
+	    attack: 30,
+	    type: 'inf',
+	    defense: {
+	        inf: 200,
+	        cav: 250,
+	        arc: 200
+	    },
+	    speed: 50,
+	    load: 0,
+	//    type: 1,
+	    points: {
+	        atk: 0,
+	        def: 25
+	    },
+	    special: true
+	};
 
 
 /***/ }
