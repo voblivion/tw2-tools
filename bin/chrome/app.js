@@ -16720,88 +16720,87 @@
 
 	var $ = __webpack_require__(6);
 	var _ = __webpack_require__(1);
-	var calculator = __webpack_require__(7);
-	var units = __webpack_require__(8);
+	var distance = __webpack_require__(7);
+	var timeToSeconds = __webpack_require__(8);
+	var slowestUnits = __webpack_require__(9);
+	var strToPosition = __webpack_require__(25);
 
-	setInterval(function() {
-	    var overview_incoming = $('[ng-controller="OverviewIncomingController"]');
-	    if(overview_incoming.length > 0) {
-	        var incoming_armies = $('.win-main table tr', overview_incoming);
-	        var progress_cols = $('.column-command_progress', incoming_armies);
+	var observer = new MutationObserver(function(mutations) {
+	    mutations.forEach(function(mutation) {
+	        mutation.addedNodes.forEach(function(node) {
+	            var oic = '[ng-controller="OverviewIncomingController"]';
+	            var row = '.win-main table tr';
+	            if($(node).is(oic + ' ' + row)) {
+	                /**
+	                 * On est en présence d'une commande entrante
+	                 */
+	                var td_target = $('.column-target_village_name', node);
+	                var td_origin = $('.column-origin_village_name', node);
+	                var td_progress = $('.column-command_progress', node);
+	                var td_type = $('.column-command_type', node);
 
-	        // Faire de la place pour un icone
-	        progress_cols.css({
-	            'line-height': '0',
-	            'text-align': 'inherit'
-	        });
-	        var progress_bars = $('.progress-wrapper', progress_cols);
-	        progress_bars.css({
-	            display: 'inline-block',
-	            width: 'calc(100% - 38px)'
-	        });
+	                // Faire de la place pour l'icone
+	                td_progress.css({
+	                    'line-height': '0',
+	                    'text-align': 'inherit'
+	                });
+	                $('.progress-wrapper', td_progress).css({
+	                    display: 'inline-block',
+	                    width: 'calc(100% - 38px)'
+	                });
 
-	        progress_cols.each(function() {
-	            if($('.tw2-tools', $(this)).length === 0) {
 	                // Calculer le temps total
-	                var progress_wrapper = $('.progress-wrapper', $(this));
-	                var progress_bar = $('.progress-bar', $(this));
-	                var progress_percent = progress_bar.width() / progress_wrapper.width();
-	                var remaining_time_text = $('.progress-text', $(this)).text();
-	                var i = remaining_time_text.split(':');
-	                var remaining_time = i[0] * 3600 + i[1] * 60 + i[2];
-	                var total_time = remaining_time / (1 - progress_percent);
+	                var progress_wrapper = $('.progress-wrapper', $(td_progress));
+	                var progress_bar = $('.progress-bar', $(td_progress));
+	                var progress = progress_bar.width() / progress_wrapper.width();
+	                var time = $('.progress-text', $(td_progress)).text();
+	                var seconds = timeToSeconds(time);
+	                var total = seconds / (1 - progress);
+	                console.log('total', total);
 
-	                // Calculer la distance
-	                var origin = $('.column-origin_village_name .coordinates').text();
-	                var origin_coords = origin.match(/(?:(\d+)\s\|\s(\d+))/).slice(1);
-	                origin = {x: origin_coords[0], y: origin_coords[1]};
-	                var target = $('.column-target_village_name .coordinates').text();
-	                var target_coords = target.match(/(?:(\d+)\s\|\s(\d+))/).slice(1);
-	                target = {x: target_coords[0], y: target_coords[1]};
+	                // Calculer la distance origin/target
+	                var origin = strToPosition($('.coordinates', td_origin).text());
+	                var target = strToPosition($('.coordinates', td_target).text());
+	                var dist = distance(origin, target);
+	                console.log('dist', dist);
 
-	                // Calcul de l'unité la plus lente
-	                var dist = calculator.distance(origin, target);
-	                var slowest_unit = null;
-	                var min_diff = Infinity;
-	                _.forEach(units, function(unit) {
-	                    var diff = Math.abs(unit.speed * dist * 60 * 100 - total_time);
-	                    if(diff < min_diff) {
-	                        slowest_unit = unit;
-	                        min_diff = diff;
-	                    }
-	                });
+	                // Afficher l'icone de l'unité la plus lente détectée
+	                var units = slowestUnits(total, dist);
+	                var unit = units[0];
+	                console.log(units);
+	                var name = unit.name;
+	                var verbose_name = unit.verbose_name;
+	                var icon = $('<span></span>');
+	                icon.addClass('tw2-tools icon-34x34-unit-' + name);
+	                icon.attr('title', verbose_name);
+	                icon.css({margin: '1px'});
+	                td_progress.append(icon);
 
-	                // Affichage de l'icone de l'unité la plus lente
-	                var name = slowest_unit.name;
-	                var verbose_name = slowest_unit.verbose_name;
-	                var icon = $('<span class="tw2-tools icon-34x34-unit-'
-	                        + name + '" title="' + verbose_name + '"></span>');
-	                icon.css({
-	                    margin: '1px'
-	                });
-	                $(this).append(icon);
-
-	                // Sélection du type de commande entrante
-	                var type = $('.column-command_type .type').attr('tooltip-content');
-
-	                // Si l'unité la plus lente est un noble, surligner en rouge la ligne
-	                if(_.includes(['snob', 'trebuchet'], name) && type === 'Attaque') {
-	                    $('td', $(this).parent()).css({
+	                // Si l'unité la plus lente est un noble, alert
+	                var command_type = $('.type', td_type).attr('tooltip-content');
+	                if(_.includes(units, 'snob') && command_type === 'Attaque') {
+	                    $('td', node).css({
 	                        background: 'rgba(255, 0, 0, 0.5)',
 	                        color: 'white'
 	                    });
 	                }
-	                // Si c'est une catapulte ou un bélier, surligner en orange la ligne
-	                else if(_.includes(['ram', 'catapult'], name) && type === 'Attaque') {
-	                    $('td', $(this).parent()).css({
+	                else if(_.includes(units, 'trebuchet') && command_type === 'Attaque') {
+	                    $('td', node).css({
 	                        background: 'rgba(200, 100, 0, 0.5)',
 	                        color: 'white'
 	                    });
 	                }
 	            }
 	        });
-	    }
-	}, 500);
+	    });
+	});
+
+	var observer_config = {
+	    childList: true,
+	    subtree: true
+	};
+	var target_node = document.body;
+	observer.observe(target_node, observer_config);
 
 
 /***/ },
@@ -26888,38 +26887,71 @@
 /* 7 */
 /***/ function(module, exports) {
 
-	module.exports = {
-	    distance: function(origin, target) {
-	        var x1 = (origin.y % 2 === 0) ? origin.x - 1 : origin.x;
-	        var x2 = (target.y % 2 === 0) ? target.x - 1 : target.x;
-	        return Math.sqrt(Math.pow(x1 - x2, 2) + 0.75 * Math.pow(origin.y - target.y, 2));
-	    }
+	module.exports = function(origin, target) {
+	    var x1 = (origin.y % 2 === 0) ? origin.x - 1 : origin.x;
+	    var x2 = (target.y % 2 === 0) ? target.x - 1 : target.x;
+	    return Math.sqrt(Math.pow(x1 - x2, 2) + 0.75 * Math.pow(origin.y - target.y, 2));
 	};
 
 
 /***/ },
 /* 8 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	module.exports = {
-	    archer: __webpack_require__(9),
-	    axe: __webpack_require__(10),
-	    catapult: __webpack_require__(11),
-	    heavy_cavalry: __webpack_require__(12),
-	    knight: __webpack_require__(13),
-	    light_cavalry: __webpack_require__(14),
-	    doppelsoldner: __webpack_require__(15),
-	    mounted_archer: __webpack_require__(16),
-	    ram: __webpack_require__(17),
-	    snob: __webpack_require__(18),
-	    spear: __webpack_require__(19),
-	    sword: __webpack_require__(20),
-	    trebuchet: __webpack_require__(21)
+	module.exports = function(time) {
+	    var p = time.split(':');
+	    return p[0] * 3600 + p[1] * 60 + p[2];
 	};
 
 
 /***/ },
 /* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var units = __webpack_require__(10);
+	var speedTime = __webpack_require__(24);
+	var _ = __webpack_require__(1);
+
+	module.exports = function(time, dist) {
+	    var matchs;
+	    var min_diff = Infinity;
+	    _.forEach(units, function(unit) {
+	        var diff = Math.abs(speedTime(unit,  dist) - time);
+	        if(diff < min_diff) {
+	            min_diff = diff;
+	            matchs = [unit];
+	        }
+	        else if (diff === min_diff) {
+	            matchs.push(unit);
+	        }
+	    });
+	    return matchs;
+	};
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = {
+	    archer: __webpack_require__(11),
+	    axe: __webpack_require__(12),
+	    catapult: __webpack_require__(13),
+	    heavy_cavalry: __webpack_require__(14),
+	    knight: __webpack_require__(15),
+	    light_cavalry: __webpack_require__(16),
+	    doppelsoldner: __webpack_require__(17),
+	    mounted_archer: __webpack_require__(18),
+	    ram: __webpack_require__(19),
+	    snob: __webpack_require__(20),
+	    spear: __webpack_require__(21),
+	    sword: __webpack_require__(22),
+	    trebuchet: __webpack_require__(23)
+	};
+
+
+/***/ },
+/* 11 */
 /***/ function(module, exports) {
 
 	/**
@@ -26954,7 +26986,7 @@
 
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports) {
 
 	/**
@@ -26989,7 +27021,7 @@
 
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports) {
 
 	/**
@@ -27024,7 +27056,7 @@
 
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports) {
 
 	/**
@@ -27059,7 +27091,7 @@
 
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports) {
 
 	/**
@@ -27094,7 +27126,7 @@
 
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports) {
 
 	/**
@@ -27129,7 +27161,7 @@
 
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports) {
 
 	/**
@@ -27165,7 +27197,7 @@
 
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports) {
 
 	/**
@@ -27200,7 +27232,7 @@
 
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports) {
 
 	/**
@@ -27235,7 +27267,7 @@
 
 
 /***/ },
-/* 18 */
+/* 20 */
 /***/ function(module, exports) {
 
 	/**
@@ -27271,7 +27303,7 @@
 
 
 /***/ },
-/* 19 */
+/* 21 */
 /***/ function(module, exports) {
 
 	/**
@@ -27306,7 +27338,7 @@
 
 
 /***/ },
-/* 20 */
+/* 22 */
 /***/ function(module, exports) {
 
 	/**
@@ -27341,7 +27373,7 @@
 
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports) {
 
 	/**
@@ -27373,6 +27405,25 @@
 	        def: 25
 	    },
 	    special: true
+	};
+
+
+/***/ },
+/* 24 */
+/***/ function(module, exports) {
+
+	module.exports = function(unit, dist) {
+	    return unit.speed * dist * 60 * 100;
+	};
+
+
+/***/ },
+/* 25 */
+/***/ function(module, exports) {
+
+	module.exports = function(str) {
+	    var p = str.match(/(?:(\d+)\s\|\s(\d+))/).slice(1);
+	    return {x: p[0], y: p[1]};
 	};
 
 

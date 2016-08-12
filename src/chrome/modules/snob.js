@@ -1,84 +1,80 @@
 var $ = require('jquery');
 var _ = require('lodash');
-var calculator = require('../../calculator');
-var units = require('../../data/units');
+var distance = require('../../utils/distance');
+var timeToSeconds = require('../../utils/timeToSeconds');
+var slowestUnits = require('../../utils/slowestUnits');
+var strToPosition = require('../../utils/strToPosition');
 
-setInterval(function() {
-    var overview_incoming = $('[ng-controller="OverviewIncomingController"]');
-    if(overview_incoming.length > 0) {
-        var incoming_armies = $('.win-main table tr', overview_incoming);
-        var progress_cols = $('.column-command_progress', incoming_armies);
+var observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        mutation.addedNodes.forEach(function(node) {
+            var oic = '[ng-controller="OverviewIncomingController"]';
+            var row = '.win-main table tr';
+            if($(node).is(oic + ' ' + row)) {
+                /**
+                 * On est en présence d'une commande entrante
+                 */
+                var td_target = $('.column-target_village_name', node);
+                var td_origin = $('.column-origin_village_name', node);
+                var td_progress = $('.column-command_progress', node);
+                var td_type = $('.column-command_type', node);
 
-        // Faire de la place pour un icone
-        progress_cols.css({
-            'line-height': '0',
-            'text-align': 'inherit'
-        });
-        var progress_bars = $('.progress-wrapper', progress_cols);
-        progress_bars.css({
-            display: 'inline-block',
-            width: 'calc(100% - 38px)'
-        });
+                // Faire de la place pour l'icone
+                td_progress.css({
+                    'line-height': '0',
+                    'text-align': 'inherit'
+                });
+                $('.progress-wrapper', td_progress).css({
+                    display: 'inline-block',
+                    width: 'calc(100% - 38px)'
+                });
 
-        progress_cols.each(function() {
-            if($('.tw2-tools', $(this)).length === 0) {
                 // Calculer le temps total
-                var progress_wrapper = $('.progress-wrapper', $(this));
-                var progress_bar = $('.progress-bar', $(this));
-                var progress_percent = progress_bar.width() / progress_wrapper.width();
-                var remaining_time_text = $('.progress-text', $(this)).text();
-                var i = remaining_time_text.split(':');
-                var remaining_time = i[0] * 3600 + i[1] * 60 + i[2];
-                var total_time = remaining_time / (1 - progress_percent);
+                var progress_wrapper = $('.progress-wrapper', $(td_progress));
+                var progress_bar = $('.progress-bar', $(td_progress));
+                var progress = progress_bar.width() / progress_wrapper.width();
+                var time = $('.progress-text', $(td_progress)).text();
+                var seconds = timeToSeconds(time);
+                var total = seconds / (1 - progress);
 
-                // Calculer la distance
-                var origin = $('.column-origin_village_name .coordinates').text();
-                var origin_coords = origin.match(/(?:(\d+)\s\|\s(\d+))/).slice(1);
-                origin = {x: origin_coords[0], y: origin_coords[1]};
-                var target = $('.column-target_village_name .coordinates').text();
-                var target_coords = target.match(/(?:(\d+)\s\|\s(\d+))/).slice(1);
-                target = {x: target_coords[0], y: target_coords[1]};
+                // Calculer la distance origin/target
+                var origin = strToPosition($('.coordinates', td_origin).text());
+                var target = strToPosition($('.coordinates', td_target).text());
+                var dist = distance(origin, target);
 
-                // Calcul de l'unité la plus lente
-                var dist = calculator.distance(origin, target);
-                var slowest_unit = null;
-                var min_diff = Infinity;
-                _.forEach(units, function(unit) {
-                    var diff = Math.abs(unit.speed * dist * 60 * 100 - total_time);
-                    if(diff < min_diff) {
-                        slowest_unit = unit;
-                        min_diff = diff;
-                    }
-                });
+                // Afficher l'icone de l'unité la plus lente détectée
+                var units = slowestUnits(total, dist);
+                var unit = units[0];
+                var name = unit.name;
+                var verbose_name = unit.verbose_name;
+                var icon = $('<span></span>');
+                icon.addClass('tw2-tools icon-34x34-unit-' + name);
+                icon.attr('title', verbose_name);
+                icon.css({margin: '1px'});
+                td_progress.append(icon);
 
-                // Affichage de l'icone de l'unité la plus lente
-                var name = slowest_unit.name;
-                var verbose_name = slowest_unit.verbose_name;
-                var icon = $('<span class="tw2-tools icon-34x34-unit-'
-                        + name + '" title="' + verbose_name + '"></span>');
-                icon.css({
-                    margin: '1px'
-                });
-                $(this).append(icon);
-
-                // Sélection du type de commande entrante
-                var type = $('.column-command_type .type').attr('tooltip-content');
-
-                // Si l'unité la plus lente est un noble, surligner en rouge la ligne
-                if(_.includes(['snob', 'trebuchet'], name) && type === 'Attaque') {
-                    $('td', $(this).parent()).css({
+                // Si l'unité la plus lente est un noble, alert
+                var command_type = $('.type', td_type).attr('tooltip-content');
+                if(_.includes(units, 'snob') && command_type === 'Attaque') {
+                    $('td', node).css({
                         background: 'rgba(255, 0, 0, 0.5)',
                         color: 'white'
                     });
                 }
-                // Si c'est une catapulte ou un bélier, surligner en orange la ligne
-                else if(_.includes(['ram', 'catapult'], name) && type === 'Attaque') {
-                    $('td', $(this).parent()).css({
+                else if(_.includes(units, 'trebuchet') && command_type === 'Attaque') {
+                    $('td', node).css({
                         background: 'rgba(200, 100, 0, 0.5)',
                         color: 'white'
                     });
                 }
             }
         });
-    }
-}, 500);
+    });
+});
+
+var observer_config = {
+    childList: true,
+    subtree: true
+};
+var target_node = document.body;
+observer.observe(target_node, observer_config);
