@@ -4,6 +4,7 @@
  */
 module.exports = {
     name: 'catapult',
+    verbose_name: 'Catapulte',
     building: 'barracks',
     required_level: 17,
     wood: 320,

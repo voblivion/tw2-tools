@@ -4,6 +4,7 @@
  */
 module.exports = {
     name: 'doppelsoldner',
+    verbose_name: 'Berzerker',
     building: 'preceptory',
     required_level: 1,
     wood: 1200,

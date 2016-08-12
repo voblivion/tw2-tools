@@ -4,6 +4,7 @@
  */
 module.exports = {
     name: 'trebuchet',
+    verbose_name: 'Trébuchet',
     building: 'preceptory',
     required_level: 1,
     wood: 4000,

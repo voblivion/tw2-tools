@@ -4,6 +4,7 @@
  */
 module.exports = {
     name: 'light_cavalry',
+    verbose_name: 'Cavalier léger',
     building: 'barracks',
     required_level: 11,
     wood: 125,

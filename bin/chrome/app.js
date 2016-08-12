@@ -16723,16 +16723,9 @@
 	var calculator = __webpack_require__(7);
 	var units = __webpack_require__(8);
 
-	var visible = false;
-
-
 	setInterval(function() {
 	    var overview_incoming = $('[ng-controller="OverviewIncomingController"]');
-
 	    if(overview_incoming.length > 0) {
-	        if(!visible) {
-	            visible = true;
-	        }
 	        var incoming_armies = $('.win-main table tr', overview_incoming);
 	        var progress_cols = $('.column-command_progress', incoming_armies);
 
@@ -16757,7 +16750,6 @@
 	                var i = remaining_time_text.split(':');
 	                var remaining_time = i[0] * 3600 + i[1] * 60 + i[2];
 	                var total_time = remaining_time / (1 - progress_percent);
-	                console.log(remaining_time, total_time);
 
 	                // Calculer la distance
 	                var origin = $('.column-origin_village_name .coordinates').text();
@@ -16781,8 +16773,9 @@
 
 	                // Affichage de l'icone de l'unité la plus lente
 	                var name = slowest_unit.name;
+	                var verbose_name = slowest_unit.verbose_name;
 	                var icon = $('<span class="tw2-tools icon-34x34-unit-'
-	                        + name + '"></span>');
+	                        + name + '" title="' + verbose_name + '"></span>');
 	                icon.css({
 	                    margin: '1px'
 	                });
@@ -16798,20 +16791,17 @@
 	                        color: 'white'
 	                    });
 	                }
+	                // Si c'est une catapulte ou un bélier, surligner en orange la ligne
 	                else if(_.includes(['ram', 'catapult'], name) && type === 'Attaque') {
 	                    $('td', $(this).parent()).css({
 	                        background: 'rgba(200, 100, 0, 0.5)',
 	                        color: 'white'
 	                    });
 	                }
-	                console.log(type, name);
 	            }
 	        });
 	    }
-	    else {
-	        visible = false;
-	    }
-	}, 2000);
+	}, 500);
 
 
 /***/ },
@@ -26938,6 +26928,7 @@
 	 */
 	module.exports = {
 	    name: 'archer',
+	    verbose_name: 'Archer',
 	    building: 'barracks',
 	    required_level: 9,
 	    wood: 80,
@@ -26972,6 +26963,7 @@
 	 */
 	module.exports = {
 	    name: 'axe',
+	    verbose_name: 'Gerrier à la hache',
 	    building: 'barracks',
 	    required_level: 5,
 	    wood: 60,
@@ -27006,6 +26998,7 @@
 	 */
 	module.exports = {
 	    name: 'catapult',
+	    verbose_name: 'Catapulte',
 	    building: 'barracks',
 	    required_level: 17,
 	    wood: 320,
@@ -27040,6 +27033,7 @@
 	 */
 	module.exports = {
 	    name: 'heavy_cavalry',
+	    verbose_name: 'Cavalier lourd',
 	    building: 'barracks',
 	    required_level: 21,
 	    wood: 200,
@@ -27074,6 +27068,7 @@
 	 */
 	module.exports = {
 	    name: 'knight',
+	    verbose_name: 'Chevalier',
 	    building: 'statue',
 	    required_level: 1,
 	    wood: 0,
@@ -27108,6 +27103,7 @@
 	 */
 	module.exports = {
 	    name: 'light_cavalry',
+	    verbose_name: 'Cavalier léger',
 	    building: 'barracks',
 	    required_level: 11,
 	    wood: 125,
@@ -27142,6 +27138,7 @@
 	 */
 	module.exports = {
 	    name: 'doppelsoldner',
+	    verbose_name: 'Berzerker',
 	    building: 'preceptory',
 	    required_level: 1,
 	    wood: 1200,
@@ -27177,6 +27174,7 @@
 	 */
 	module.exports = {
 	    name: 'mounted_archer',
+	    verbose_name: 'Archer monté',
 	    building: 'barracks',
 	    required_level: 13,
 	    wood: 250,
@@ -27211,6 +27209,7 @@
 	 */
 	module.exports = {
 	    name: 'ram',
+	    verbose_name: 'Bélier',
 	    building: 'barracks',
 	    required_level: 15,
 	    wood: 300,
@@ -27245,6 +27244,7 @@
 	 */
 	module.exports = {
 	    name: 'snob',
+	    verbose_name: 'Noble',
 	    building: 'academy',
 	    required_level: 1,
 	    wood: 40000,
@@ -27280,6 +27280,7 @@
 	 */
 	module.exports = {
 	    name: 'spear',
+	    verbose_name: 'Lancier',
 	    building: 'barracks',
 	    required_level: 1,
 	    wood: 50,
@@ -27314,6 +27315,7 @@
 	 */
 	module.exports = {
 	    name: 'sword',
+	    verbose_name: 'Guerrier à l\'épée',
 	    building: 'barracks',
 	    required_level: 3,
 	    wood: 30,
@@ -27348,6 +27350,7 @@
 	 */
 	module.exports = {
 	    name: 'trebuchet',
+	    verbose_name: 'Trébuchet',
 	    building: 'preceptory',
 	    required_level: 1,
 	    wood: 4000,

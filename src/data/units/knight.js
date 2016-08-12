@@ -4,6 +4,7 @@
  */
 module.exports = {
     name: 'knight',
+    verbose_name: 'Chevalier',
     building: 'statue',
     required_level: 1,
     wood: 0,

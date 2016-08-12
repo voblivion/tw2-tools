@@ -4,6 +4,7 @@
  */
 module.exports = {
     name: 'archer',
+    verbose_name: 'Archer',
     building: 'barracks',
     required_level: 9,
     wood: 80,

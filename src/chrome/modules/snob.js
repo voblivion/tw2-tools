@@ -30,7 +30,6 @@ setInterval(function() {
                 var i = remaining_time_text.split(':');
                 var remaining_time = i[0] * 3600 + i[1] * 60 + i[2];
                 var total_time = remaining_time / (1 - progress_percent);
-                console.log(remaining_time, total_time);
 
                 // Calculer la distance
                 var origin = $('.column-origin_village_name .coordinates').text();
@@ -54,8 +53,9 @@ setInterval(function() {
 
                 // Affichage de l'icone de l'unité la plus lente
                 var name = slowest_unit.name;
+                var verbose_name = slowest_unit.verbose_name;
                 var icon = $('<span class="tw2-tools icon-34x34-unit-'
-                        + name + '"></span>');
+                        + name + '" title="' + verbose_name + '"></span>');
                 icon.css({
                     margin: '1px'
                 });
@@ -78,8 +78,7 @@ setInterval(function() {
                         color: 'white'
                     });
                 }
-                console.log(type, name);
             }
         });
     }
-}, 2000);
+}, 500);
