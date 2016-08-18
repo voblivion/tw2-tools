@@ -1,15 +1,15 @@
 module.exports = {
-    archer: require('./archer'),
-    axe: require('./axe'),
-    catapult: require('./catapult'),
-    heavy_cavalry: require('./heavy_cavalry'),
-    knight: require('./knight'),
-    light_cavalry: require('./light_cavalry'),
-    doppelsoldner: require('./doppelsoldner'),
-    mounted_archer: require('./mounted_archer'),
-    ram: require('./ram'),
-    snob: require('./snob'),
     spear: require('./spear'),
     sword: require('./sword'),
-    trebuchet: require('./trebuchet')
+    archer: require('./archer'),
+    heavy_cavalry: require('./heavy_cavalry'),
+    trebuchet: require('./trebuchet'),
+    knight: require('./knight'),
+    axe: require('./axe'),
+    light_cavalry: require('./light_cavalry'),
+    mounted_archer: require('./mounted_archer'),
+    catapult: require('./catapult'),
+    ram: require('./ram'),
+    doppelsoldner: require('./doppelsoldner'),
+    snob: require('./snob')
 };

@@ -14,6 +14,10 @@ var config = {
             loader: 'eslint',
             exclude: /node_modules/
         }],
+        loaders: [{
+            test: /\.less$/,
+            loader: 'style!css!less'
+        }]
     },
     eslint: {
         failOnWarning: false,

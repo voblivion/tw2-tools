@@ -6,7 +6,9 @@ var strToPosition = require('../../utils/strToPosition');
 module.exports = {
     element: '[ng-if="data.type === REPORT_TYPES.scouting"]',
     add: function(node) {
-        var report = {};
+        var report = {
+            type: 'report'
+        };
 
         // Récupérer la date du rapport
         var wrapper = $(node).parents().eq(3);

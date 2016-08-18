@@ -16,11 +16,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $que->execute();
     if($que->rowCount() == 0) {
         // Ajout du rapport d'état des unités
-        $que_str = "INSERT INTO `tw2_buildings` (`date`, `x`, `y`, `player`";
+        $que_str = "INSERT INTO `tw2_buildings` (`date`, `x`, `y`, `player`, `type`";
         foreach($buildings_name as $k => $name) {
             $que_str .= ", `".$name."`";
         }
-        $que_str .= ") VALUES (:date, :x, :y, :player";
+        $que_str .= ") VALUES (:date, :x, :y, :player, :type";
         foreach($buildings_name as $k => $name) {
             $que_str .= ", :".$name;
         }
@@ -30,6 +30,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $que->bindValue(':date', $_POST['date']);
         $que->bindValue(':x', $_POST['x'], PDO::PARAM_INT);
         $que->bindValue(':y', $_POST['y'], PDO::PARAM_INT);
+        $que->bindValue(':type', $_POST['type'], PDO::PARAM_STR);
         foreach($buildings_name as $k => $name) {
             $que->bindValue(':'.$name, $_POST[$name], PDO::PARAM_INT);
         }
