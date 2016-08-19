@@ -5,12 +5,9 @@
     "description": "Tools for Tribal Wars 2",
     "version": "1.0",
 
-    "browser_action": {
-        "default_icon": "icon.png"
-    },
     "permissions": ["tabs", "http://*/*"],
     "content_scripts": [{
-        "matches": ["https://fr.tribalwars2.com/*"],
+        "matches": ["https://fr.tribalwars2.com/game.php?*"],
         "js": [
             "app.js"
         ]

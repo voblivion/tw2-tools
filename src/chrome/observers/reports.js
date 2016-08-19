@@ -2,11 +2,13 @@ var _ = require('lodash');
 var $ = require('jquery');
 var strToDate = require('../../utils/strToDate');
 var strToPosition = require('../../utils/strToPosition');
+var server = require('../../utils/server');
 
 module.exports = {
     element: '[ng-if="data.type === REPORT_TYPES.scouting"]',
     add: function(node) {
         var report = {
+            server: server,
             type: 'report'
         };
 
@@ -36,9 +38,7 @@ module.exports = {
                 report[name] = parseInt(count);
             });
 
-            $.post('https://drouin.io/tw2/units.php', report).then(function() {
-                console.log(this.status);
-            });
+            $.post('https://drouin.io/tw2/units.php', report);
         }
         var buildings_w = $('[ng-show="report[type].buildings"]:not(.ng-hide)', node);
         if(buildings_w.length) {
@@ -50,12 +50,7 @@ module.exports = {
                 report[name] = parseInt(level);
             });
 
-            $.post('https://drouin.io/tw2/buildings.php', report).then(function() {
-                console.log(this.status);
-            });
+            $.post('https://drouin.io/tw2/buildings.php', report);
         }
-    },
-    remove: function(node) {
-        console.error(node);
     }
 };

@@ -4,6 +4,7 @@ var moment = require('moment');
 var units = require('../../../data/units');
 var buildings = require('../../../data/buildings');
 var strToPosition = require('../../../utils/strToPosition');
+var server = require('../../../utils/server');
 require('./style.less');
 
 var last_position;
@@ -82,8 +83,8 @@ module.exports = {
 
         var map_tooltip = $('#map-tooltip');
 
-        function update_buildings(position) {
-            $.get('https://drouin.io/tw2/buildings.php', position).then(function(data) {
+        function update_buildings(data) {
+            $.get('https://drouin.io/tw2/buildings.php', data).then(function(data) {
                 if(data.id === undefined) {
                     building_date.text('Jamais');
                     _.forEach(buildings, function(building, name) {
@@ -91,7 +92,8 @@ module.exports = {
                     });
                 }
                 else {
-                    building_date.text(moment.unix(data.date).format('DD/MM h:mm:ss'));
+                    var diff = moment.utc(moment().diff(moment.unix(data.date)));
+                    building_date.text(diff.format('DDDj h:mm:ss'));
                     _.forEach(buildings, function(building, name) {
                         $('#spybar-' + name + '-count').text(data[name]);
                     });
@@ -99,8 +101,8 @@ module.exports = {
             });
         }
 
-        function update_units(position) {
-            $.get('https://drouin.io/tw2/units.php', position).then(function(data) {
+        function update_units(data) {
+            $.get('https://drouin.io/tw2/units.php', data).then(function(data) {
                 if(data.id === undefined) {
                     unit_date.text('Jamais');
                     _.forEach(units, function(unit, name) {
@@ -108,7 +110,8 @@ module.exports = {
                     });
                 }
                 else {
-                    unit_date.text(moment.unix(data.date).format('DD/MM h:mm:ss'));
+                    var diff = moment.utc(moment().diff(moment.unix(data.date)));
+                    unit_date.text(diff.format('DDDj h:mm:ss'));
                     _.forEach(units, function(unit, name) {
                         $('#spybar-' + name + '-count').text(data[name]);
                     });
@@ -126,6 +129,7 @@ module.exports = {
                     else {
                         var village_name = $('.village-name', map_tooltip).text();
                         var position = strToPosition(village_name);
+                        position.server = server;
                         if(!_.isEqual(position, last_position)) {
                             last_position = position;
                             update_buildings(position);

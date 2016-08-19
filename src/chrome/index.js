@@ -2,6 +2,13 @@ var _ = require('lodash');
 var $ = require('jquery');
 var observers = require('./observers');
 
+// Configurer jquery pour mettre les cookies
+$.ajaxSetup({
+    xhrFields: {
+        withCredentials: true
+    }
+});
+
 // L'observateur écoute les changement du dom et redistribue aux observers
 var global_observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
