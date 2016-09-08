@@ -34,7 +34,8 @@ module.exports = {
             _.forEach(units_div, function(unit_div) {
                 var name_div = $('>:first-child', unit_div);
                 var name = name_div.attr('class').match(/icon-34x34-unit-(\w+)/)[1];
-                var count = name_div.next().attr('tooltip-content');
+                var count = name_div.next().attr('tooltip-content').replace(/\s/, '');
+                console.log(count, name_div.next().attr('tooltip-content'));
                 report[name] = parseInt(count);
             });
 
