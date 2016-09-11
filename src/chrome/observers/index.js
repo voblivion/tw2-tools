@@ -1,6 +1,6 @@
 module.exports = {
-    login: require('./login'),
+//    login: require('./login'),
     snob: require('./snob'),
-    reports: require('./reports'),
-    spybar: require('./spybar')
+//    reports: require('./reports'),
+//    spybar: require('./spybar')
 };
